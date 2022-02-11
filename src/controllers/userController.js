@@ -197,7 +197,7 @@ const loginUser = async function (req, res) {
 
         const token = await jwt.sign({ userId: user._id }, 'radium', {
 
-            expiresIn: "2h"
+            expiresIn: "4h"
 
         })
 
