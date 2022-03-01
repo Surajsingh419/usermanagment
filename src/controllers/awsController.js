@@ -7,20 +7,19 @@ aws.config.update({
 });
 
 
-// this function uploads file to AWS and gives back the url for the file
 let uploadFile = async (file) => {
-  return new Promise(function (resolve, reject) { // exactly 
+  return new Promise(function (resolve, reject) { 
     
     // Create S3 service object
     let s3 = new aws.S3({ apiVersion: "2006-03-01" });
     var uploadParams = {
       ACL: "public-read", // this file is publically readable
       Bucket: "classroom-training-bucket", // HERE
-      Key: "Radium/mmubarak38/booktTitle/" + new Date()+file.originalname, // HERE    "pk_newFolder/harry-potter.png" pk_newFolder/harry-potter.png
+      Key: "Radium/mmubarak38/booktTitle/" + new Date()+file.originalname, 
       Body: file.buffer, 
     };
 
-    // Callback - function provided as the second parameter ( most oftenly)
+    
     s3.upload(uploadParams , function (err, data) {
       if (err) {
         return reject( { "error": err });
@@ -33,12 +32,12 @@ let uploadFile = async (file) => {
 };
 
 
-const bookCoverUrl= async function (req, res) {
+const postCoverUrl= async function (req, res) {
   try {
     let files = req.files;
     if (files && files.length > 0) {
-      //upload to s3 and return true..incase of error in uploading this will goto catch block( as rejected promise)
-      let uploadedFileURL = await uploadFile( files[0] ); // expect this function to take file as input and give url of uploaded file as output 
+      
+      let uploadedFileURL = await uploadFile( files[0] ); 
       res.status(201).send({ status: true, data: uploadedFileURL });
 
     } 
@@ -54,4 +53,4 @@ const bookCoverUrl= async function (req, res) {
 
 };
 
-module.exports.bookCoverUrl = bookCoverUrl
+module.exports.postCoverUrl = postCoverUrl

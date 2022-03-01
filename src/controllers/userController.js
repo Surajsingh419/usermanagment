@@ -1,17 +1,14 @@
 const userModel = require('../models/userModel')
 
 const jwt = require('jsonwebtoken')
-
+const validator = require('email-validator');
 
 const isValid = function (value) {
     if (typeof value === 'undefined' || value === null) return false
-    if (typeof value === 'string' && value.trim().length === 0) return false
+    if (typeof value === 'string' && value.length === 0) return false
     return true;
 }
 
-const isValidTitle = function (title) {
-    return ['Mr', 'Mrs', 'Miss'].indexOf(title) !== -1
-}
 
 const isValidRequestBody = function (requestBody) {
     return Object.keys(requestBody).length > 0
@@ -21,29 +18,17 @@ const isValidphone = function (value, type) {
     if (typeof value != type) return false
     return true;
 }
+const isValidSyntaxOfEmail = function (value) {
 
-const isValidPassword = function (value) {   //
-    if (value.length < 8) {
+    if (!(validator.validate(value))) {
+
         return false
-    } else if (value.length > 15) {
-        return false
-    } else {
-        return true
+
     }
+
+    return true
+
 }
-
-//if(value.length<8 && value.length>15){rreturn true}
-
-
-// mentor session
-
-const trimObjValues = function (obj) {
-    return Object.keys(obj).reduce((acc, curr) => {
-        acc[curr] = obj[curr].trim()
-        return acc;
-    }, {});
-}
-
 
 const registerUser = async function (req, res) {
     try {
@@ -54,7 +39,7 @@ const registerUser = async function (req, res) {
         }
 
         // Extract params
-        let { title, name, phone, email, password, address } = requestBody; // Object destructing
+        let { title, name, phone, email, password } = requestBody; // Object destructing
 
         // Validation starts
 
@@ -62,14 +47,9 @@ const registerUser = async function (req, res) {
             res.status(400).send({ status: false, message: 'Title is required' })
             return
         }
-        title = title.trim()
+        
 
-        if (!isValidTitle(title)) {
-            res.status(400).send({ status: false, message: `Title should be among Mr, Mrs, Miss` })
-            return
-        }
-
-        if (!isValid(name.trim())) {
+        if (!isValid(name)) {
             res.status(400).send({ status: false, message: ' name is required' })
             return
         }
@@ -92,17 +72,17 @@ const registerUser = async function (req, res) {
             return
         }
 
-        if (!isValid(email.trim())) {
+        if (!isValid(email)) {
             res.status(400).send({ status: false, message: `Email is required` })
             return
         }
+        if (!isValidSyntaxOfEmail(email)) {
 
-        if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
-            res.status(400).send({ status: false, message: `Email should be a valid email address` })
-            return
+            return res.status(404).send({ status: false, message: "Please provide a valid Email Id" });
+
         }
-
-        const isEmailAlreadyUsed = await userModel.findOne({ email }); // {email: email} object shorthand property
+        
+         const isEmailAlreadyUsed = await userModel.findOne({ email }); 
 
         if (isEmailAlreadyUsed) {
             res.status(400).send({ status: false, message: `${email} email address is already registered` })
@@ -110,44 +90,16 @@ const registerUser = async function (req, res) {
         }
 
 
-        if (!isValid(password.trim())) {
+        if (!isValid(password)) {
             res.status(400).send({ status: false, message: `Password is required` })
             return
         }
 
-        if (!isValidPassword(password.trim())) {
+        if (!isValidPassword(password)) {
             res.status(400).send({ status: false, message: `Password must contain characters between 8 to 15` })
             return
         }
-
-        if (!isValid(address)) {
-            res.status(400).send({ status: false, message: `address is mandatory` })
-            return
-        }
-
-        //ti trim object of Object
-
-        trimObjValues(address)
-
-
-        if (!isValid(address.street)) {
-            res.status(400).send({ status: false, message: "street should have some value" })
-            return
-        }
-
-        if (!isValid(address.city)) {
-            res.status(400).send({ status: false, message: "city should have some value" })
-            return
-        }
-
-        if (!isValid(address.pincode)) {
-            res.status(400).send({ status: false, message: "pincode should have some value" })
-            return
-        }
-
-        // Validation ends
-
-        const userData = { title, name, phone, email, password, address }
+         const userData = { title, name, phone, email, password }
         const newUser = await userModel.create(userData);
 
         res.status(201).send({ status: true, message: `user created successfully`, data: newUser });
@@ -172,17 +124,14 @@ const loginUser = async function (req, res) {
         const { email, password } = requestBody;
 
         // Validation starts
-        if (!isValid(email.trim())) {
+        if (!isValid(email)) {
             res.status(400).send({ status: false, message: `Email is required` })
             return
         }
 
-        if (!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email.trim()))) {
-            res.status(400).send({ status: false, message: `Email should be a valid email address` })
-            return
-        }
+        
 
-        if (!isValid(password.trim())) {
+        if (!isValid(password)) {
             res.status(400).send({ status: false, message: `Password is required` })
             return
         }
@@ -210,4 +159,3 @@ const loginUser = async function (req, res) {
 
 
 module.exports = { registerUser, loginUser }
-
